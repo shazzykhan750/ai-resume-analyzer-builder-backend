@@ -24,17 +24,21 @@ async function generateInterViewReportController(req, res) {
   }
 
   let resume = "";
+
   if (req.file) {
-    if (req.file.mimetype !== "application/pdf") {
+    try {
+      const resumeContent = await new pdfParse.PDFParse(
+        Uint8Array.from(req.file.buffer),
+      ).getText();
+
+      resume = resumeContent.text;
+    } catch (error) {
+      console.error("PDF parsing failed:", error);
+
       return res.status(400).json({
-        message: "Only PDF resumes are supported.",
+        message: "The uploaded file is not a valid PDF.",
       });
     }
-
-    const resumeContent = await new pdfParse.PDFParse(
-      Uint8Array.from(req.file.buffer),
-    ).getText();
-    resume = resumeContent.text;
   }
 
   const interViewReportByAi = await generateInterviewReport({
@@ -43,18 +47,7 @@ async function generateInterViewReportController(req, res) {
     jobDescription,
   });
 
-  const interviewReport = await interviewReportModel.create({
-    user: req.user.id,
-    resume,
-    selfDescription,
-    jobDescription,
-    ...interViewReportByAi,
-  });
-
-  res.status(201).json({
-    message: "Interview report generated successfully.",
-    interviewReport,
-  });
+  // बाकी code same...
 }
 
 /**

@@ -10,5 +10,6 @@ connectToDB()
     });
   })
   .catch((err) => {
-    console.log(err);
+    console.error("Failed to start server:", err);
+    process.exit(1);
   });
